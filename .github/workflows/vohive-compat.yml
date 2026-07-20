@@ -41,12 +41,12 @@ jobs:
 
     steps:
       - name: Checkout vowifi-go
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: vowifi-go
 
       - name: Set up pinned Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: vowifi-go/go.mod
           cache: true
@@ -56,14 +56,14 @@ jobs:
 
       - name: Checkout VoHive default ref
         if: ${{ inputs.vohive-ref == '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ inputs.vohive-repository || format('{0}/vohive', github.repository_owner) }}
           path: vohive
 
       - name: Checkout VoHive selected ref
         if: ${{ inputs.vohive-ref != '' }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ inputs.vohive-repository || format('{0}/vohive', github.repository_owner) }}
           ref: ${{ inputs.vohive-ref }}
