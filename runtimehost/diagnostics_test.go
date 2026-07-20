@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/boa-z/vowifi-go/runtimehost/eventhost"
-	"github.com/boa-z/vowifi-go/runtimehost/voiceclient"
+	"github.com/zanescope/vowifi-go/runtimehost/eventhost"
+	"github.com/zanescope/vowifi-go/runtimehost/voiceclient"
 )
 
 func TestSafeDiagnosticStateRedactsSensitiveRuntimeText(t *testing.T) {

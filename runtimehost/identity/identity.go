@@ -7,9 +7,9 @@ import (
 	"math"
 	"strings"
 
-	"github.com/boa-z/vowifi-go/runtimehost/carrier"
-	"github.com/boa-z/vowifi-go/runtimehost/simauth"
-	"github.com/boa-z/vowifi-go/runtimehost/simtransport"
+	"github.com/zanescope/vowifi-go/runtimehost/carrier"
+	"github.com/zanescope/vowifi-go/runtimehost/simauth"
+	"github.com/zanescope/vowifi-go/runtimehost/simtransport"
 )
 
 const (

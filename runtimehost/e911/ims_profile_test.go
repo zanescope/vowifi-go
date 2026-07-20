@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/boa-z/vowifi-go/runtimehost/voiceclient"
+	"github.com/zanescope/vowifi-go/runtimehost/voiceclient"
 )
 
 func TestBuildEmergencyRegisterHeadersMarksContactAndValidatesBinding(t *testing.T) {

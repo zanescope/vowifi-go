@@ -14,7 +14,8 @@ Environment:
   VOHIVE_DIR                    path to a local VoHive checkout
   GO_BIN                        path to go binary
   VOWIFI_MODULE                 module path for this repository
-  VOWIFI_COMPAT_LEGACY_BASE     legacy module owner/base to rewrite
+  VOWIFI_COMPAT_LEGACY_BASES    space-separated legacy owner/bases to rewrite
+  VOWIFI_COMPAT_LEGACY_BASE     single-base compatibility override
   VOHIVE_COMPAT_PACKAGES        package list for go test
   VOHIVE_COMPAT_RUN             go test -run pattern
   VOHIVE_COMPAT_BUILD_PACKAGES  optional package list for go build
@@ -59,8 +60,20 @@ find_local_go_module_refs() {
 	)
 }
 
+normalize_directory() {
+	local path="$1"
+	if command -v cygpath >/dev/null 2>&1; then
+		cygpath -am "$path" | tr '\\' '/'
+		return
+	fi
+	(
+		cd "$path"
+		pwd -P
+	)
+}
+
 verify_local_module() {
-	local module_path
+	local legacy_module module_path
 	local local_legacy_refs=()
 
 	if ! module_path="$(
@@ -76,29 +89,36 @@ verify_local_module() {
 	fi
 	printf '\n==> verified local vowifi-go module path: %s\n' "$module_path"
 
-	if [[ "$LEGACY_MODULE" != "$VOWIFI_MODULE" ]]; then
-		mapfile -t local_legacy_refs < <(find_local_go_module_refs "$LEGACY_MODULE")
-		if [[ ${#local_legacy_refs[@]} -gt 0 ]]; then
-			printf 'legacy vowifi-go module references found in local Go module/source files:\n' >&2
-			printf '  %s\n' "${local_legacy_refs[@]}" >&2
-			return 1
+	for legacy_module in "${LEGACY_MODULES[@]}"; do
+		if [[ "$legacy_module" != "$VOWIFI_MODULE" ]]; then
+			local_legacy_refs=()
+			mapfile -t local_legacy_refs < <(find_local_go_module_refs "$legacy_module")
+			if [[ ${#local_legacy_refs[@]} -gt 0 ]]; then
+				printf 'legacy vowifi-go module references found in local Go module/source files:\n' >&2
+				printf '  %s\n' "${local_legacy_refs[@]}" >&2
+				return 1
+			fi
 		fi
-	fi
-	printf '\n==> verified local Go module/source references do not use %s\n' "$LEGACY_MODULE"
+	done
+	printf '\n==> verified local Go module/source references do not use configured legacy paths\n'
 }
 
 verify_rewritten_modules() {
+	local legacy_module
 	local remaining_legacy=()
 	local current_refs=()
 
-	if [[ "$LEGACY_MODULE" != "$VOWIFI_MODULE" ]]; then
-		mapfile -t remaining_legacy < <(find_module_refs "$LEGACY_MODULE")
-		if [[ ${#remaining_legacy[@]} -gt 0 ]]; then
-			printf 'legacy vowifi-go module references remain after rewrite:\n' >&2
-			printf '  %s\n' "${remaining_legacy[@]}" >&2
-			return 1
+	for legacy_module in "${LEGACY_MODULES[@]}"; do
+		if [[ "$legacy_module" != "$VOWIFI_MODULE" ]]; then
+			remaining_legacy=()
+			mapfile -t remaining_legacy < <(find_module_refs "$legacy_module")
+			if [[ ${#remaining_legacy[@]} -gt 0 ]]; then
+				printf 'legacy vowifi-go module references remain after rewrite:\n' >&2
+				printf '  %s\n' "${remaining_legacy[@]}" >&2
+				return 1
+			fi
 		fi
-	fi
+	done
 
 	mapfile -t current_refs < <(find_module_refs "$VOWIFI_MODULE")
 	if [[ ${#current_refs[@]} -eq 0 ]]; then
@@ -109,7 +129,7 @@ verify_rewritten_modules() {
 }
 
 verify_vowifi_replace() {
-	local replace_path
+	local expected_path normalized_replace replace_path
 	if ! replace_path="$(
 		env GOWORK=off TMPDIR="$tmpdir/go-tmp" GOTMPDIR="$tmpdir/go-tmp" \
 			"$GO_BIN" list -m -f '{{with .Replace}}{{.Path}}{{end}}' "$VOWIFI_MODULE"
@@ -117,7 +137,9 @@ verify_vowifi_replace() {
 		printf 'VoHive does not resolve %s after module rewrite and tidy\n' "$VOWIFI_MODULE" >&2
 		return 1
 	fi
-	if [[ "$replace_path" != "$ROOT" ]]; then
+	expected_path="$(normalize_directory "$ROOT")"
+	normalized_replace="$(normalize_directory "$replace_path")"
+	if [[ "$normalized_replace" != "$expected_path" ]]; then
 		printf 'VoHive resolves %s via unexpected replace path: %s\n' "$VOWIFI_MODULE" "${replace_path:-<none>}" >&2
 		return 1
 	fi
@@ -154,10 +176,24 @@ if [[ ! -d "$VOHIVE_DIR" ]]; then
 fi
 
 GO_BIN="$(find_go)"
-VOWIFI_MODULE="${VOWIFI_MODULE:-github.com/boa-z/vowifi-go}"
-legacy_base="${VOWIFI_COMPAT_LEGACY_BASE:-github.com/iniwex5}"
-legacy_base="${legacy_base%/}"
-LEGACY_MODULE="${legacy_base}/vowifi-go"
+VOWIFI_MODULE="${VOWIFI_MODULE:-github.com/zanescope/vowifi-go}"
+if [[ -n "${VOWIFI_COMPAT_LEGACY_BASE:-}" ]]; then
+	legacy_bases="$VOWIFI_COMPAT_LEGACY_BASE"
+else
+	legacy_bases="${VOWIFI_COMPAT_LEGACY_BASES:-github.com/boa-z github.com/iniwex5}"
+fi
+read -r -a legacy_base_list <<< "$legacy_bases"
+LEGACY_MODULES=()
+for legacy_base in "${legacy_base_list[@]}"; do
+	legacy_base="${legacy_base%/}"
+	if [[ -n "$legacy_base" ]]; then
+		LEGACY_MODULES+=("${legacy_base}/vowifi-go")
+	fi
+done
+if [[ ${#LEGACY_MODULES[@]} -eq 0 ]]; then
+	printf 'at least one legacy module base must be configured\n' >&2
+	exit 2
+fi
 VOHIVE_COMPAT_PACKAGES="${VOHIVE_COMPAT_PACKAGES:-./cmd/vohive ./internal/api ./internal/cscall ./internal/device ./internal/e911 ./internal/notify ./internal/sim ./internal/vowifihost}"
 VOHIVE_COMPAT_RUN="${VOHIVE_COMPAT_RUN:-VoWiFi|RuntimeStart|StartRuntime|Tunnel|MOBIKE|Dataplane|IMS|Voice|USSD|E911|Emergency|Websheet}"
 VOHIVE_COMPAT_BUILD_PACKAGES="${VOHIVE_COMPAT_BUILD_PACKAGES:-./cmd/vohive}"
@@ -205,12 +241,17 @@ ensure_vohive_embed_assets
 
 verify_local_module
 
-mapfile -t legacy_files < <(grep -RIl --exclude-dir=.git -- "$LEGACY_MODULE" . 2>/dev/null || true)
-if [[ ${#legacy_files[@]} -gt 0 ]]; then
-	printf '\n==> rewriting legacy vowifi-go imports in temporary VoHive copy\n'
-	LEGACY_MODULE="$LEGACY_MODULE" VOWIFI_MODULE="$VOWIFI_MODULE" \
-	perl -0pi -e 's/\Q$ENV{LEGACY_MODULE}\E/$ENV{VOWIFI_MODULE}/g' "${legacy_files[@]}"
-fi
+for legacy_module in "${LEGACY_MODULES[@]}"; do
+	if [[ "$legacy_module" == "$VOWIFI_MODULE" ]]; then
+		continue
+	fi
+	mapfile -t legacy_files < <(grep -RIl --exclude-dir=.git -- "$legacy_module" . 2>/dev/null || true)
+	if [[ ${#legacy_files[@]} -gt 0 ]]; then
+		printf '\n==> rewriting legacy vowifi-go imports from %s in temporary VoHive copy\n' "$legacy_module"
+		LEGACY_MODULE="$legacy_module" VOWIFI_MODULE="$VOWIFI_MODULE" \
+		perl -0pi -e 's/\Q$ENV{LEGACY_MODULE}\E/$ENV{VOWIFI_MODULE}/g' "${legacy_files[@]}"
+	fi
+done
 verify_rewritten_modules
 
 run env GOWORK=off TMPDIR="$tmpdir/go-tmp" GOTMPDIR="$tmpdir/go-tmp" "$GO_BIN" mod edit -replace "${VOWIFI_MODULE}=${ROOT}"

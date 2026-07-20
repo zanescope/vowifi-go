@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	swusim "github.com/boa-z/vowifi-go/engine/sim"
+	swusim "github.com/zanescope/vowifi-go/engine/sim"
 )
 
 const (

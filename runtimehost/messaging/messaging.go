@@ -12,7 +12,7 @@ import (
 	"unicode/utf16"
 	"unicode/utf8"
 
-	"github.com/boa-z/vowifi-go/runtimehost/eventhost"
+	"github.com/zanescope/vowifi-go/runtimehost/eventhost"
 )
 
 var ErrDeliveryNotFound = errors.New("delivery not found")

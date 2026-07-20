@@ -7,8 +7,9 @@ work in this repository without rediscovering the same constraints each time.
 
 vowifi-go is an independent Go implementation of the VoHive VoWiFi runtime
 boundary. It is intended to replace behavior that was previously provided by an
-official closed-source VoWiFi library, while remaining usable by existing
-VoHive versions through the public runtime APIs.
+official closed-source VoWiFi library while keeping the public runtime APIs
+stable. Consumers using a previous Go module namespace require the temporary
+source migration performed by the compatibility tooling.
 
 The implementation is still under active development and is not yet full
 feature parity with the official closed-source implementation.
@@ -18,7 +19,8 @@ feature parity with the official closed-source implementation.
 - Primary repository: this repository.
 - Compatibility consumer: a sibling or otherwise configured VoHive checkout.
 - Do not move implementation work back into `vohive` unless explicitly asked.
-- Keep `vowifi-go` independently usable by old `vohive` checkouts.
+- Keep the public runtime APIs stable for VoHive; legacy namespace consumers
+  are validated only after migration in an isolated temporary copy.
 - Use `vohive` only as a compatibility validator unless the user explicitly
   requests a `vohive` change.
 
@@ -74,7 +76,7 @@ GO=/path/to/go make ci
 
 ## VoHive Compatibility Check
 
-After changes that affect public runtime behavior, also validate the old VoHive
+After changes that affect public runtime behavior, also validate the VoHive
 consumer from a local VoHive checkout:
 
 ```sh
@@ -82,7 +84,7 @@ VOHIVE_DIR=/path/to/vohive GO=/usr/local/go/bin/go GOFMT=/usr/local/go/bin/gofmt
 ```
 
 The compatibility script uses a temporary VoHive copy, rewrites legacy
-`vowifi-go` module references to `github.com/boa-z/vowifi-go`, verifies the
+`vowifi-go` module references to `github.com/zanescope/vowifi-go`, verifies the
 rewrite and temporary `replace`, then runs the focused package checks. The
 VoHive checkout should remain clean unless the user explicitly requested a
 change there.

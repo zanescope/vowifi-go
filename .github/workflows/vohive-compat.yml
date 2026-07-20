@@ -1,12 +1,16 @@
 name: VoHive Compatibility
 
 on:
+  push:
+    branches:
+      - main
+  pull_request:
   workflow_dispatch:
     inputs:
       vohive-repository:
         description: VoHive repository to test against, such as owner/repo.
         required: false
-        default: boa-z/vohive
+        default: zanescope/vohive
       vohive-ref:
         description: Optional branch, tag, or SHA for the VoHive checkout.
         required: false
@@ -29,7 +33,7 @@ permissions:
 
 jobs:
   compat:
-    name: Old VoHive consumer
+    name: VoHive source-migration compatibility
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -54,14 +58,14 @@ jobs:
         if: ${{ inputs.vohive-ref == '' }}
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.vohive-repository }}
+          repository: ${{ inputs.vohive-repository || format('{0}/vohive', github.repository_owner) }}
           path: vohive
 
       - name: Checkout VoHive selected ref
         if: ${{ inputs.vohive-ref != '' }}
         uses: actions/checkout@v4
         with:
-          repository: ${{ inputs.vohive-repository }}
+          repository: ${{ inputs.vohive-repository || format('{0}/vohive', github.repository_owner) }}
           ref: ${{ inputs.vohive-ref }}
           path: vohive
 

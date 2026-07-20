@@ -13,9 +13,10 @@ inside VoHive.
 
 "Usable in VoHive" means all of the following are true:
 
-- An older VoHive checkout can resolve `github.com/boa-z/vowifi-go`, build the
-  relevant runtime packages, and run the compatibility test matrix without a
-  committed local `replace`.
+- After isolated source migration of its `go.mod` and imports, an older VoHive
+  checkout can resolve `github.com/zanescope/vowifi-go`, build the relevant
+  runtime packages, and run the compatibility test matrix without a committed
+  local `replace`.
 - A controlled device trial completes modem/SIM identity, AKA, SWu/ePDG tunnel
   establishment, IMS registration, refresh, and shutdown cleanup.
 - SMS, USSD, outbound voice, inbound voice, and the emergency-call policy are

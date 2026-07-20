@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/boa-z/vowifi-go/runtimehost/voiceclient"
+	"github.com/zanescope/vowifi-go/runtimehost/voiceclient"
 )
 
 func TestIMSSMSTransportAppliesDigestAuthenticationInfo(t *testing.T) {

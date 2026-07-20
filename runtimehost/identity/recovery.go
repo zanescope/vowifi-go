@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/boa-z/vowifi-go/runtimehost/simtransport"
+	"github.com/zanescope/vowifi-go/runtimehost/simtransport"
 )
 
 var ErrISIMIdentityDataEmpty = errors.New("ISIM identity data empty")

@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/boa-z/vowifi-go/engine/sim"
-	"github.com/boa-z/vowifi-go/runtimehost/voiceclient"
+	"github.com/zanescope/vowifi-go/engine/sim"
+	"github.com/zanescope/vowifi-go/runtimehost/voiceclient"
 )
 
 const maxEntitlementHTTPDigestRetries = 2

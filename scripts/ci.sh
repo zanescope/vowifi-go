@@ -53,8 +53,8 @@ module_path_check() {
 	local module_files=()
 	local legacy_refs=()
 
-	expected="github.com/boa-z/vowifi-go"
-	legacy_base="${CI_LEGACY_MODULE_BASE:-github.com/iniwex5}"
+	expected="github.com/zanescope/vowifi-go"
+	legacy_base="${CI_LEGACY_MODULE_BASE:-github.com/boa-z}"
 	legacy_module="${CI_LEGACY_MODULE:-${legacy_base%/}/vowifi-go}"
 
 	if ! module_path="$(env GOWORK=off "$GO_BIN" list -m -f '{{.Path}}')"; then
@@ -132,7 +132,7 @@ hygiene_check() {
 	local local_path_refs=()
 
 	status=0
-	legacy_base="${CI_LEGACY_MODULE_BASE:-github.com/iniwex5}"
+	legacy_base="${CI_LEGACY_MODULE_BASE:-github.com/boa-z}"
 	legacy_module="${CI_LEGACY_MODULE:-${legacy_base%/}/vowifi-go}"
 	email_regex="${CI_PRIVACY_EMAIL_RE:-[[:alnum:]_.%+-]+[@]([[:alnum:]-]+[.])?(gmail|googlemail|hotmail|outlook|live|msn|icloud|me|mac|yahoo|ymail|rocketmail|proton|protonmail|pm|aol|qq|163|126|yeah|foxmail)[.][[:alpha:].]{2,}}"
 	local_path_regex='/(home|Users)/[[:alnum:]_.-]+|[[:alpha:]]:[\\]+Users[\\]+[[:alnum:]_.-]+'

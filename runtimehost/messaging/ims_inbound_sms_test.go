@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/boa-z/vowifi-go/runtimehost/eventhost"
+	"github.com/zanescope/vowifi-go/runtimehost/eventhost"
 )
 
 func TestHandleIMSMessageAcceptsCPIMIMDNDeliveryReport(t *testing.T) {
